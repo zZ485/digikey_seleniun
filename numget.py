@@ -18,7 +18,7 @@ def send_mails(title, qty):
     # 发件人的邮箱
     sender = 'digikey_bot@163.com'
     # 收件人邮箱
-    receiver = 'aoyue@vip.126.com'
+    receiver = 'Lily@aoyuehk.com'
 
     # 邮件的正文内容
     mail_content = '商品名：' + title + ' 库存为：' + str(qty) + ' 达到预定库存数！'
@@ -114,7 +114,7 @@ def main():
             print(pageNum[1])
 
             time.sleep(sleepTime)
-            for i in range(1, pageNum[1]):
+            for i in range(0, pageNum[1]):
                 time.sleep(sleepTime)
 
                 lis = driver.find_elements(By.CSS_SELECTOR, '#data-table-0 > tbody > tr')
@@ -126,6 +126,7 @@ def main():
 
                     # 获取商品库存qty
                     qtyAvailable = li.find_element(By.CSS_SELECTOR, 'td:nth-child(4) > span > div').text
+                    qtyAvailable = qtyAvailable.replace(',', '')
                     qty = re.findall("\d+\.?\d*", qtyAvailable)
                     qty = list(map(int, qty))
 
@@ -136,8 +137,8 @@ def main():
 
                     print('商品名称：' + title + '\t剩余库存' + str(qty))
 
-                    if pageNum[1] == 1:
-                        break
+                if pageNum[1] == 1:
+                    break
 
                     buttons = driver.find_elements(By.CSS_SELECTOR, '#__next > main > section > div > div > div > div > div > div .MuiIconButton-root')
                     button = buttons[0]

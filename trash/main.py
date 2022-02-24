@@ -32,3 +32,45 @@
 #     goodsDetailJSON = digiKeyApi.text
 #     # pythonDictionary = json.loads(goodsDetailJSON)
 #     print(digiKeyApi.text)
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+
+
+class test:
+    a = []
+
+    def __init__(self):
+        for i in range(5):
+            self.a.append(i)
+
+    def add(self):
+        for j in range(len(self.a)):
+            self.a[j] += 1
+
+    def doubled(self):
+        self.add()
+        for i in range(len(self.a)):
+            self.a[i] *= 2
+
+# try:
+#     temp = 6 / 0
+# except ZeroDivisionError as e:
+#     print(e)
+# print(1)
+# str = '2,171'
+# str = str.replace(',', '')
+# print(str)
+
+
+# option = webdriver.ChromeOptions()
+# option.add_argument('--headless')
+# driver = webdriver.Chrome(options=option)
+driver = webdriver.Chrome()
+driver.set_page_load_timeout(10)
+driver.set_script_timeout(10)
+try:
+    driver.get('https://www.arrow.com/en/products/search?page=1&q=stm32f&sortBy=calculatedQuantity&sortDirection=desc')
+except:
+    driver.execute_script('window.stop()')
+    s = driver.find_element(By.CSS_SELECTOR, ' #searchListView > tbody td.SearchResults-column.SearchResults-column--stock > div.SearchResults-stock-container > span.SearchResults-stock').text
+    print(s)
