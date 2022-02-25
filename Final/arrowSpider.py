@@ -92,6 +92,3 @@ class ArrowSpider:
                     print(e)
                     break
 
-
-test = ArrowSpider()
-test.catchData()
