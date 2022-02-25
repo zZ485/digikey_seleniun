@@ -55,9 +55,9 @@ class MultiSpider:
         # 设定进程数
         processNumber = config['process_number']
 
-        for i, j in range(processNumber):
-            i = Process(target=self.digikeySpider)
-            j = Process(target=self.arrowSpider)
+        for i in range(processNumber):
+            i = Process(target=self.digikeySpider())
+            j = Process(target=self.arrowSpider())
 
             i.start()
             j.start()
