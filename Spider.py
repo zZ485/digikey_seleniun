@@ -101,8 +101,6 @@ class DigiKeySpider:
 
         # 不停止循环爬取
         while True:
-            # 每轮搜索间隔半小时
-            time.sleep(1800)
             # 对links列表轮询
             try:
                 for count in range(len(self.links)):
@@ -119,7 +117,7 @@ class DigiKeySpider:
 
                     except NoSuchElementException as e:
                         print(e)
-                        break
+                        continue
 
                     if leftNum == '0':
                         continue
@@ -133,16 +131,20 @@ class DigiKeySpider:
                                             '-center > div:nth-child(1) > button').click()
                     except NoSuchElementException as e:
                         print(e)
-                        break
+                        continue
 
                     time.sleep(self.sleepTime)
 
-                    # 获取有现货的商品页数
-                    nums = self.driver.find_element(By.CSS_SELECTOR,
-                                               '#__next > main > section > div > div.jss49 > div > div:nth-child(3) > div > '
-                                               'div:nth-child(1) > div > div:nth-child(1) > div > div:nth-child(2) > span').text
-                    pageNum = re.findall("\d+\.?\d*", nums)
-                    pageNum = list(map(int, pageNum))
+                    try:
+                        # 获取有现货的商品页数
+                        nums = self.driver.find_element(By.CSS_SELECTOR,
+                                                   '#__next > main > section > div > div.jss49 > div > div:nth-child(3) > div > '
+                                                   'div:nth-child(1) > div > div:nth-child(1) > div > div:nth-child(2) > span').text
+                        pageNum = re.findall("\d+\.?\d*", nums)
+                        pageNum = list(map(int, pageNum))
+                    except Exception as e:
+                        print(e)
+                        continue
 
                     time.sleep(self.sleepTime)
 
@@ -150,19 +152,27 @@ class DigiKeySpider:
                     for i in range(0, pageNum[1]):
                         time.sleep(self.sleepTime)
 
-                        lis = self.driver.find_elements(By.CSS_SELECTOR, '#data-table-0 > tbody > tr')
+                        try:
+                            lis = self.driver.find_elements(By.CSS_SELECTOR, '#data-table-0 > tbody > tr')
+                        except Exception as e:
+                            print(e)
+                            continue
 
                         # 对每页每条商品信息遍历
                         for li in lis:
-                            # 获取商品名title
-                            title = li.find_element(By.CSS_SELECTOR,
-                                                    'td:nth-child(2) > div > div.MuiGrid-root > div > a').text
+                            try:
+                                # 获取商品名title
+                                title = li.find_element(By.CSS_SELECTOR,
+                                                        'td:nth-child(2) > div > div.MuiGrid-root > div > a').text
 
-                            # 获取商品库存qty
-                            qtyAvailable = li.find_element(By.CSS_SELECTOR, 'td:nth-child(4) > span > div').text
-                            qtyAvailable = qtyAvailable.replace(',', '')
-                            qty = re.findall("\d+\.?\d*", qtyAvailable)
-                            qty = list(map(int, qty))
+                                # 获取商品库存qty
+                                qtyAvailable = li.find_element(By.CSS_SELECTOR, 'td:nth-child(4) > span > div').text
+                                qtyAvailable = qtyAvailable.replace(',', '')
+                                qty = re.findall("\d+\.?\d*", qtyAvailable)
+                                qty = list(map(int, qty))
+                            except Exception as e:
+                                print(e)
+                                continue
 
                             # # 发送邮件
                             config = self.read_config()
@@ -174,9 +184,9 @@ class DigiKeySpider:
                             print('商品名称：' + title + '\t剩余库存' + str(qty))
 
                         if pageNum[1] == 1:
-                            break
+                            continue
 
-                        # 若页数不为1，找到页面底部”下一页“按钮
+                            # 若页数不为1，找到页面底部”下一页“按钮
                         buttons = self.driver.find_elements(By.CSS_SELECTOR,
                                                        '#__next > main > section > div > div > div > div > div > div .MuiIconButton-root')
                         button = buttons[0]
@@ -185,6 +195,9 @@ class DigiKeySpider:
                     print(count)
             except Exception as e:
                 print(e)
+
+            # 每轮搜索间隔半小时
+            time.sleep(1800)
 
 
 

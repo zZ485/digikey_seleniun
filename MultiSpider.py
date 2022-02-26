@@ -8,7 +8,7 @@
 
 
 import json
-from multiprocessing import Process
+from threading import Thread
 
 import Spider
 from arrowSpider import ArrowSpider
@@ -16,8 +16,7 @@ from arrowSpider import ArrowSpider
 
 class MultiSpider:
 
-    processList1 = []
-    processList2 = []
+    threadList = []
 
     def read_config(self):
         """
@@ -55,16 +54,16 @@ class MultiSpider:
         # 设定进程数
         processNumber = config['process_number']
 
+        t1 = Thread(target=self.digikeySpider)
+        t1.start()
+        t2 = Thread(target=self.arrowSpider)
+        t2.start()
+
+        self.threadList.append(t1)
+        self.threadList.append(t2)
+
         for i in range(processNumber):
-            i = Process(target=self.digikeySpider())
-            j = Process(target=self.arrowSpider())
+            for t in self.threadList:
+                t.join()
 
-            i.start()
-            j.start()
-            self.processList.append(i)
-            self.processList2.append(j)
-
-            # 每两分钟创建新进程
-            i.join(timeout=120)
-            j.join(timeout=120)
 

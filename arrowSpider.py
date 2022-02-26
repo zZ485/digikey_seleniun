@@ -74,8 +74,6 @@ class ArrowSpider:
 
         # 不停止循环爬取
         while True:
-            # 每轮搜索间隔半小时
-            time.sleep(1800)
             # 对links列表进行轮询
             for link in self.links:
                 try:
@@ -128,4 +126,6 @@ class ArrowSpider:
 
                 except Exception as e:
                     print(e)
-                    break
+                    continue
+            # 每轮搜索间隔半小时
+            time.sleep(1800)
