@@ -42,8 +42,8 @@ class ArrowSpider:
         options.add_argument('user-agent={0}'.format(user_agent))
 
         # 设置代理地址：1270.0.0.1：1080
-        proxy = config['proxies']['http']
-        options.add_argument('--proxy-server=http://' + proxy)
+        # proxy = config['proxies']['http']
+        # options.add_argument('--proxy-server=http://' + proxy)
         self.driver = webdriver.Chrome(options=options)
 
     def getSource(self):
@@ -119,10 +119,12 @@ class ArrowSpider:
                             config = self.read_config()
                             if qty > config['numbers']:
                                 print('商品名：' + title + ' 达到预定库存数！')
-                                sendMails.send_mails(title=title, qty=qty, platform='Arrow')
+                                temp = sendMails(title, qty)
+                                # sendMails.send_mails(temp, title=title, qty=qty, platform='Arrow')
                             print('商品名称：' + title + '\t剩余库存' + str(qty))
                     except Exception as e:
                         print(e)
+                        continue
 
                 except Exception as e:
                     print(e)

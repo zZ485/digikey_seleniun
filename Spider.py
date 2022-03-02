@@ -42,60 +42,15 @@ class DigiKeySpider:
             config = json.load(json_file)
         return config
 
-    def getSource(self):
-        """
-        从GoodList.txt中按行读取所需要查找的芯片系列名，读入对象的goodLists列表中
-        """
-        # 获取商品列表
-        with open('GoodList.txt', 'r', encoding='utf-8') as f:
-            for line in f.readlines():
-                self.goodList.append(line.strip('\n'))  # 剪切 ’\n‘
-            f.close()
-
-    def getLinks(self):
-        """
-        将得到的芯片系列号组合成用url，将合成后的url放入links成为待访问链接
-        """
-
-        # 对芯片系列列表轮询
-        for goodName in self.goodList:
-            self.driver.get('https://www.digikey.cn')
-            # 找到搜索栏并输入芯片名
-            self.driver.find_element(By.CSS_SELECTOR,
-                                '#header > div.header__top > div.header__search > div > div.searchbox-inner > '
-                                'div.searchbox-inner-searchtext > input').send_keys(goodName)
-
-            # 点击搜索栏旁的搜索按钮
-            self.driver.find_element(By.CSS_SELECTOR, '#header-search-button').click()
-
-            # 获取商品分类的标签列表
-            labels = self.driver.find_elements(By.CSS_SELECTOR,
-                                          '#__next > main > div > div > div > '
-                                          'div.MuiGrid-root.jss10.MuiGrid-item.MuiGrid-grid-md-9 > div.jss121.jss15 > '
-                                          'div.jss120 > div > div > table > tbody > tr')
-            time.sleep(self.sleepTime)
-
-            # 对标签列表轮询，获取标签中可点击链接
-            for label in labels:
-                title = label.find_element(By.CSS_SELECTOR, 'td:nth-child(2) > span').text
-                link = label.find_element(By.CSS_SELECTOR,
-                                          '#__next > main > div > div > div > '
-                                          'div.MuiGrid-root.jss10.MuiGrid-item.MuiGrid-grid-md-9 > div.jss121.jss15 > '
-                                          'div.jss120 > div > div > table > tbody > tr > td:nth-child(1) > span > '
-                                          'a').get_attribute('href')
-                # 判断标签后缀是否为”集成电路（IC）“，将链接放入待访问链接列表
-                if title == '集成电路（IC）':
-                    self.links.append(link)
-            time.sleep(self.sleepTime)
-
     def catchData(self):
         """
         DigiKey.com平台爬虫本体
         """
 
-        self.getSource()
-
-        self.getLinks()
+        with open('DigiKeyLinks.txt', 'r', encoding='utf-8') as f:
+            for line in f.readlines():
+                self.links.append(line.strip('\n'))
+            f.close()
 
         print(len(self.links))
 
@@ -121,6 +76,27 @@ class DigiKeySpider:
 
                     if leftNum == '0':
                         continue
+                    elif leftNum == '1':
+                        try:
+                            self.driver.find_element(By.CSS_SELECTOR,
+                                                '#__next > main > section > div > section > '
+                                                'div.MuiGrid-root.MuiGrid-container.MuiGrid-direction-xs-column > '
+                                                'div.MuiGrid-root.jss53.MuiGrid-container.MuiGrid-spacing-xs-2.MuiGrid-align-items-xs'
+                                                '-center > div:nth-child(1) > button').click()
+                            time.sleep(self.sleepTime)
+                            title = self.driver.find_element(By.CSS_SELECTOR, '#__next > main > div > div.MuiGrid-root.MuiGrid-container.MuiGrid-spacing-xs-5 > div > div:nth-child(2) > div > table > thead > tr > th > h1').text
+                            inStock = self.driver.find_element(By.CSS_SELECTOR, '#__next > main > div > div.MuiGrid-root.MuiGrid-container.MuiGrid-spacing-xs-5 > div > div:nth-child(3) > div > div:nth-child(1) > div > div > span').text
+                            qty = re.findall("\d+\.?\d*", inStock)
+                            qty = list(map(int, qty))
+                            if qty[0] > self.numbers:
+                                print('商品名：' + title + ' 达到预定库存数！')
+                                temp = sendMails(title, qty)
+                                # sendMails.send_mails(temp, title=title, qty=qty, platform= 'DigiKey')
+                            print('商品名称：' + title + '\t剩余库存' + str(qty))
+                            continue
+                        except Exception as e:
+                            print(e)
+                            continue
 
                     try:
                         # 点击菜单栏底部”全部应用“按钮，刷新页面
@@ -179,7 +155,7 @@ class DigiKeySpider:
                             if max(qty) > config['numbers']:
                                 print('商品名：' + title + ' 达到预定库存数！')
                                 temp = sendMails(title, qty)
-                                sendMails.send_mails(temp, title=title, qty=qty, platform= 'DigiKey')
+                                # sendMails.send_mails(temp, title=title, qty=qty, platform= 'DigiKey')
 
                             print('商品名称：' + title + '\t剩余库存' + str(qty))
 
@@ -197,7 +173,8 @@ class DigiKeySpider:
                 print(e)
 
             # 每轮搜索间隔半小时
-            time.sleep(1800)
+            # time.sleep(1800)
 
 
-
+digi = DigiKeySpider()
+digi.catchData()
